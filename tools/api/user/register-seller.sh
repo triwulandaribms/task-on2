@@ -1,0 +1,1 @@
+curl -H 'Content-Type: application/json' -d '{"name":"Budi","email":"budi@sksk.id","password":"12345678"}' 'http://127.0.0.1:8080/user/register-seller'
