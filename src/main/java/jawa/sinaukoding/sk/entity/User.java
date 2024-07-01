@@ -21,7 +21,7 @@ public record User(Long id, //
 
     public PreparedStatement insert(final Connection connection) {
         try {
-            final String sql = "INSERT INTO sys_user (name, email, password, role, created_by, created_at) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)";
+            final String sql = "INSERT INTO " + TABLE_NAME + " (name, email, password, role, created_by, created_at) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)";
             final PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             ps.setString(1, name);
             ps.setString(2, email);

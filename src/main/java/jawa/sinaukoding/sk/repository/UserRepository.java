@@ -1,16 +1,18 @@
 package jawa.sinaukoding.sk.repository;
 
 import jawa.sinaukoding.sk.entity.User;
-import jawa.sinaukoding.sk.model.Authentication;
-import jawa.sinaukoding.sk.model.request.RegisterBuyerReq;
-import jawa.sinaukoding.sk.model.request.RegisterSellerReq;
-import org.springframework.jdbc.core.*;
-import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
-import java.sql.*;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -20,15 +22,15 @@ import java.util.Optional;
 @Repository
 public class UserRepository {
 
+    private static final Logger log = LoggerFactory.getLogger(UserRepository.class);
+
     private final JdbcTemplate jdbcTemplate;
-    private final SimpleJdbcInsert jdbcInsert;
 
     public UserRepository(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
-        this.jdbcInsert = new SimpleJdbcInsert(jdbcTemplate);
     }
 
-    public List<User> listUsers(final Authentication authentication, int page, int size) {
+    public List<User> listUsers(int page, int size) {
         final String sql = "SELECT * FROM %s".formatted(User.TABLE_NAME);
         final List<User> users = jdbcTemplate.query(sql, new RowMapper<User>() {
             @Override
@@ -53,21 +55,8 @@ public class UserRepository {
         return users;
     }
 
-    public Long saveSeller(final Authentication authentication, final RegisterSellerReq req, String encodedPassword) {
+    public long saveSeller(final User user) {
         final KeyHolder keyHolder = new GeneratedKeyHolder();
-        final User user = new User( //
-                null, //
-                req.name(), //
-                req.email(), //
-                encodedPassword, //
-                User.Role.SELLER, //
-                authentication.id(), //
-                null, //
-                null, //
-                OffsetDateTime.now(), //
-                null, //
-                null //
-        );
         try {
             if (jdbcTemplate.update(con -> Objects.requireNonNull(user.insert(con)), keyHolder) != 1) {
                 return 0L;
@@ -75,25 +64,13 @@ public class UserRepository {
                 return Objects.requireNonNull(keyHolder.getKey()).longValue();
             }
         } catch (Exception e) {
+            log.error("{}", e.getMessage());
             return 0L;
         }
     }
 
-    public Long saveBuyer(final Authentication authentication, final RegisterBuyerReq req, String encodedPassword) {
+    public long saveBuyer(final User user) {
         final KeyHolder keyHolder = new GeneratedKeyHolder();
-        final User user = new User( //
-                null, //
-                req.name(), //
-                req.email(), //
-                encodedPassword, //
-                User.Role.BUYER, //
-                authentication.id(), //
-                null, //
-                null, //
-                OffsetDateTime.now(), //
-                null, //
-                null //
-        );
         try {
             if (jdbcTemplate.update(con -> Objects.requireNonNull(user.insert(con)), keyHolder) != 1) {
                 return 0L;
@@ -101,17 +78,19 @@ public class UserRepository {
                 return Objects.requireNonNull(keyHolder.getKey()).longValue();
             }
         } catch (Exception e) {
+            log.error("{}", e.getMessage());
             return 0L;
         }
     }
 
-    public Long updatePassword(final Authentication authentication, String newPassword) {
+    public long updatePassword(Long userId, String newPassword) {
         if (jdbcTemplate.update(con -> {
-            final PreparedStatement ps = con.prepareStatement("UPDATE sys_user SET password=?");
+            final PreparedStatement ps = con.prepareStatement("UPDATE " + User.TABLE_NAME + " SET password=? WHERE id=?");
             ps.setString(1, newPassword);
+            ps.setLong(2, userId);
             return ps;
         }) > 0) {
-            return authentication.id();
+            return userId;
         } else {
             return 0L;
         }
@@ -122,10 +101,13 @@ public class UserRepository {
             return Optional.empty();
         }
         return Optional.ofNullable(jdbcTemplate.query(con -> {
-            final PreparedStatement ps = con.prepareStatement("SELECT * FROM sys_user WHERE id=?");
+            final PreparedStatement ps = con.prepareStatement("SELECT * FROM " + User.TABLE_NAME + " WHERE id=?");
             ps.setLong(1, id);
             return ps;
         }, rs -> {
+            if (rs.getLong("id") <= 0) {
+                return null;
+            }
             final String name = rs.getString("name");
             final String email = rs.getString("email");
             final String password = rs.getString("password");
@@ -145,11 +127,14 @@ public class UserRepository {
             return Optional.empty();
         }
         return Optional.ofNullable(jdbcTemplate.query(con -> {
-            final PreparedStatement ps = con.prepareStatement("SELECT * FROM sys_user WHERE email=?");
+            final PreparedStatement ps = con.prepareStatement("SELECT * FROM " + User.TABLE_NAME + " WHERE email=?");
             ps.setString(1, email);
             return ps;
         }, rs -> {
             final Long id = rs.getLong("id");
+            if (id <= 0) {
+                return null;
+            }
             final String name = rs.getString("name");
             final String password = rs.getString("password");
             final User.Role role = User.Role.valueOf(rs.getString("role"));
