@@ -31,8 +31,9 @@ public class UserRepository {
     }
 
     public List<User> listUsers(int page, int size) {
-        final String sql = "SELECT * FROM %s".formatted(User.TABLE_NAME);
-        final List<User> users = jdbcTemplate.query(sql, new RowMapper<User>() {
+        final int offset = (page - 1 ) * size;
+        final String sql = "SELECT * FROM %s ORDER BY id LIMIT ? OFFSET ?".formatted(User.TABLE_NAME);
+        final List<User> users = jdbcTemplate.query(sql, new Object[]{size, offset}, new RowMapper<User>() {
             @Override
             public User mapRow(ResultSet rs, int rowNum) throws SQLException {
                 final User.Role role = User.Role.fromString(rs.getString("role"));
@@ -133,7 +134,7 @@ public class UserRepository {
         }, rs -> {
             final Long id = rs.getLong("id");
             if (id <= 0) {
-                return null;
+                    return null;
             }
             final String name = rs.getString("name");
             final String password = rs.getString("password");
