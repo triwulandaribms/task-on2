@@ -5,6 +5,7 @@ import jawa.sinaukoding.sk.model.Authentication;
 import jawa.sinaukoding.sk.model.request.LoginReq;
 import jawa.sinaukoding.sk.model.request.RegisterBuyerReq;
 import jawa.sinaukoding.sk.model.request.RegisterSellerReq;
+import jawa.sinaukoding.sk.model.request.UpdateProfileReq;
 import jawa.sinaukoding.sk.model.Response;
 import jawa.sinaukoding.sk.model.response.UserDto;
 import jawa.sinaukoding.sk.repository.UserRepository;
@@ -16,7 +17,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -124,4 +124,35 @@ public final class UserService extends AbstractService {
         final String token = JwtUtils.hs256Tokenize(header, payload, jwtKey);
         return Response.create("08", "00", "Sukses", token);
     }
+
+    public Response<Object> updateProfile(final Authentication authentication, final UpdateProfileReq req) {
+        return precondition(authentication, User.Role.ADMIN, User.Role.BUYER, User.Role.SELLER).orElseGet(() -> {
+            Optional<User> userOpt = userRepository.findById(authentication.id());
+            if (userOpt.isEmpty()) {
+                return Response.create("07", "01", "User tidak ditemukan", null);
+            }
+            User user = userOpt.get();
+            User updatedUser = new User(
+                user.id(),
+                req.name(),
+                user.email(),
+                user.password(),
+                user.role(),
+                user.createdBy(),
+                user.updatedBy(),
+                user.deletedBy(),
+                user.createdAt(),
+                OffsetDateTime.now(),
+                user.deletedAt()
+            );
+    
+            if (userRepository.updateUser(updatedUser)) {
+                return Response.create("07", "00", "Profil berhasil diupdate", null);
+            } else {
+                return Response.create("07", "02", "Gagal mengupdate profil", null);
+            }
+        });
+    }
+        
+    
 }

@@ -28,6 +28,7 @@ public class UserRepository {
 
     public UserRepository(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
+        
     }
 
     public List<User> listUsers(int page, int size) {
@@ -147,4 +148,26 @@ public class UserRepository {
             return new User(id, name, email, password, role, createdBy, updatedBy, deletedBy, createdAt, updatedAt, deletedAt);
         }));
     }
+
+
+
+    public boolean updateUser(final User user) {
+        final String sql = "UPDATE " + User.TABLE_NAME + " SET name = ?, updated_at = ? WHERE id = ?";
+        try {
+            int rowsAffected = jdbcTemplate.update(con -> {
+                PreparedStatement ps = con.prepareStatement(sql);
+                ps.setString(1, user.name());
+                ps.setTimestamp(2, Timestamp.from(user.updatedAt().toInstant()));
+                ps.setLong(3, user.id());
+                return ps;
+            });
+            return rowsAffected > 0;
+        } catch (Exception e) {
+            log.error("Failed to update user: {}", e.getMessage());
+            return false;
+        }
+    }
+                
+
+
 }
