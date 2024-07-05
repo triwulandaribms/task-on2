@@ -1,5 +1,8 @@
 package jawa.sinaukoding.sk.util;
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.interfaces.DecodedJWT;
+
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.Key;
@@ -278,4 +281,10 @@ public final class JwtUtils {
             private ValueHolder next;
         }
     }
+    public static String getUserId(String token){
+        DecodedJWT decodedJWT = JWT.decode( token);
+        System.out.println("Token dari utils : "+token);
+        return decodedJWT.getClaim("userId").asString();
+    }
+
 }

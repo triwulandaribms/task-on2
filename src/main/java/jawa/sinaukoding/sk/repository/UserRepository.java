@@ -3,6 +3,7 @@ package jawa.sinaukoding.sk.repository;
 import jawa.sinaukoding.sk.entity.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -83,20 +84,29 @@ public class UserRepository {
         }
     }
 
-    public long updatePassword(Long userId, String newPassword) {
-        if (jdbcTemplate.update(con -> {
-            final PreparedStatement ps = con.prepareStatement("UPDATE " + User.TABLE_NAME + " SET password=? WHERE id=?");
-            ps.setString(1, newPassword);
-            ps.setLong(2, userId);
-            return ps;
-        }) > 0) {
-            return userId;
-        } else {
+    public long resetPassword(Long userId, String newPassword) {
+        try {
+            int rowsUpdated = jdbcTemplate.update(con -> {
+                final PreparedStatement ps = con.prepareStatement("UPDATE " + User.TABLE_NAME + " SET password=?, updated_by=?, updated_at=CURRENT_TIMESTAMP WHERE id=?");
+                ps.setString(1, newPassword);
+                ps.setLong(2, userId);
+                ps.setLong(3, userId);
+                return ps;
+            });
+
+            if (rowsUpdated > 0) {
+                return userId;
+            } else {
+                return 0L;
+            }
+        }catch (DataAccessException e){
+            System.err.println("Error updating password for user id " + userId + ": " + e.getMessage());
             return 0L;
         }
     }
 
     public Optional<User> findById(final Long id) {
+        System.out.println("ID nya : "+id);
         if (id == null || id < 0) {
             return Optional.empty();
         }
@@ -130,6 +140,7 @@ public class UserRepository {
             final PreparedStatement ps = con.prepareStatement("SELECT * FROM " + User.TABLE_NAME + " WHERE email=?");
             ps.setString(1, email);
             return ps;
+
         }, rs -> {
             final Long id = rs.getLong("id");
             if (id <= 0) {
@@ -147,4 +158,5 @@ public class UserRepository {
             return new User(id, name, email, password, role, createdBy, updatedBy, deletedBy, createdAt, updatedAt, deletedAt);
         }));
     }
+
 }
