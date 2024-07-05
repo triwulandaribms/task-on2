@@ -1,4 +1,3 @@
-
 spring:
   application:
     name: sk
@@ -12,5 +11,3 @@ spring:
 sk:
   jwt:
     key: 46dcf409d6aafd07cda7a224c1bfba8aa85b66dae9d037984881beef6516118d
-server:
-  port: 8081
