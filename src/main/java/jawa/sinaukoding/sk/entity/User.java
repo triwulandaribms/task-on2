@@ -49,4 +49,5 @@ public record User(Long id, //
             }
         }
     }
+
 }

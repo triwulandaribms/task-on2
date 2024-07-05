@@ -6,6 +6,9 @@ import jawa.sinaukoding.sk.model.request.RegisterBuyerReq;
 import jawa.sinaukoding.sk.model.request.RegisterSellerReq;
 import jawa.sinaukoding.sk.service.UserService;
 import jawa.sinaukoding.sk.util.SecurityContextHolder;
+
+import java.util.Map;
+
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -48,9 +51,11 @@ public class UserController {
         return null;
     }
 
-    @PostMapping("/delete-user")
-    public Response<Object> deleteUser() {
-        // TODO: delete user
-        return null;
+    
+    @DeleteMapping("/delete-user")
+    public Response<Object> deleteUser(@RequestBody Map<String, Long> requestBody) {
+        Long userId = requestBody.get("id");
+        Authentication authentication = SecurityContextHolder.getAuthentication();
+        return userService.deletedUser(authentication, userId);
     }
 }

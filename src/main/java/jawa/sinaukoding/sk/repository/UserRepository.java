@@ -147,4 +147,15 @@ public class UserRepository {
             return new User(id, name, email, password, role, createdBy, updatedBy, deletedBy, createdAt, updatedAt, deletedAt);
         }));
     }
+
+    public long deletedUser(User user) {
+    try {
+        String sql = "UPDATE " + User.TABLE_NAME + " SET deleted_at=CURRENT_TIMESTAMP, deleted_by=? WHERE id=?";
+        return jdbcTemplate.update(sql, user.deletedBy(), user.id());
+    } catch (Exception e) {
+        log.error("Failed to soft delete user: {}", e.getMessage());
+        return 0L;
+    }
+}
+
 }

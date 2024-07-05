@@ -11,6 +11,8 @@ import jawa.sinaukoding.sk.repository.UserRepository;
 import jawa.sinaukoding.sk.util.HexUtils;
 import jawa.sinaukoding.sk.util.JwtUtils;
 import org.springframework.core.env.Environment;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -123,5 +125,43 @@ public final class UserService extends AbstractService {
                 .add("exp", exp); //
         final String token = JwtUtils.hs256Tokenize(header, payload, jwtKey);
         return Response.create("08", "00", "Sukses", token);
+    }
+
+  
+    public Response<Object> deletedUser(Authentication authentication, Long userId) {
+        return precondition(authentication, User.Role.ADMIN).orElseGet(() -> {
+            Optional<User> userOpt = userRepository.findById(userId);
+          
+            if (!userOpt.isPresent()) {
+                return Response.create("10", "02", "ID tidak ditemukan", null);
+            }
+
+            User dataUser = userOpt.get();
+
+            if (dataUser.deletedAt() != null) {
+                return Response.create("10", "03", "Data sudah dihapus", null);
+            }
+
+            User updatedUser = new User(
+                dataUser.id(),
+                dataUser.name(),
+                dataUser.email(),
+                dataUser.password(),
+                dataUser.role(),
+                dataUser.createdBy(),
+                dataUser.updatedBy(),
+                authentication.id(), 
+                dataUser.createdAt(),
+                dataUser.updatedAt(),
+                OffsetDateTime.now()
+            );
+
+            Long updatedRows = userRepository.deletedUser(updatedUser);
+            if (updatedRows > 0) {
+                return Response.create("10", "00", "Berhasil hapus data", null);
+            } else {
+                return Response.create("10", "01", "Gagal hapus data", null);
+            }
+        });
     }
 }
