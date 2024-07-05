@@ -4,7 +4,7 @@ import jawa.sinaukoding.sk.model.Authentication;
 import jawa.sinaukoding.sk.model.Response;
 import jawa.sinaukoding.sk.model.request.RegisterBuyerReq;
 import jawa.sinaukoding.sk.model.request.RegisterSellerReq;
-// import jawa.sinaukoding.sk.model.request.updateProfile;
+import jawa.sinaukoding.sk.model.request.ResetPasswordReq;
 import jawa.sinaukoding.sk.model.request.UpdateProfileReq;
 import jawa.sinaukoding.sk.service.UserService;
 import jawa.sinaukoding.sk.util.SecurityContextHolder;
@@ -24,7 +24,8 @@ public class UserController {
     }
 
     @GetMapping("/list")
-    public Response<Object> listUser(@RequestParam(value = "page", defaultValue = "1") int page, @RequestParam(value = "size", defaultValue = "10") int size) {
+    public Response<Object> listUser(@RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "3") int size) {
         Authentication authentication = SecurityContextHolder.getAuthentication();
         return userService.listUsers(authentication, page, size);
     }
@@ -42,18 +43,18 @@ public class UserController {
     }
 
     @PostMapping("/reset-password")
-    public Response<Object> resetPassword() {
-        // TODO: reset password
-        return null;
+    public Response<Object> resetPassword(@RequestBody ResetPasswordReq req) {
+        Authentication authentication = SecurityContextHolder.getAuthentication();
+        return userService.resetPassword(authentication, req);
+
     }
 
     @PostMapping("/update-profile")
-    public Response<Object> updateProfile(@RequestBody UpdateProfileReq req ) {
-        Authentication authentication = SecurityContextHolder.getAuthentication(); 
+    public Response<Object> updateProfile(@RequestBody UpdateProfileReq req) {
+        Authentication authentication = SecurityContextHolder.getAuthentication();
         return userService.updateProfile(authentication, req);
     }
 
-    
     @DeleteMapping("/delete-user")
     public Response<Object> deleteUser(@RequestBody Map<String, Long> requestBody) {
         Long userId = requestBody.get("id");
