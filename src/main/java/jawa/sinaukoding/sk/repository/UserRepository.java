@@ -28,11 +28,13 @@ public class UserRepository {
 
     public UserRepository(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
+        
     }
 
     public List<User> listUsers(int page, int size) {
-        final String sql = "SELECT * FROM %s".formatted(User.TABLE_NAME);
-        final List<User> users = jdbcTemplate.query(sql, new RowMapper<User>() {
+        final int offset = (page - 1 ) * size;
+        final String sql = "SELECT * FROM %s ORDER BY id LIMIT ? OFFSET ?".formatted(User.TABLE_NAME);
+        final List<User> users = jdbcTemplate.query(sql, new Object[]{size, offset}, new RowMapper<User>() {
             @Override
             public User mapRow(ResultSet rs, int rowNum) throws SQLException {
                 final User.Role role = User.Role.fromString(rs.getString("role"));
@@ -133,7 +135,7 @@ public class UserRepository {
         }, rs -> {
             final Long id = rs.getLong("id");
             if (id <= 0) {
-                return null;
+                    return null;
             }
             final String name = rs.getString("name");
             final String password = rs.getString("password");
@@ -157,5 +159,27 @@ public class UserRepository {
         return 0L;
     }
 }
+
+
+
+
+    public boolean updateUser(final User user) {
+        final String sql = "UPDATE " + User.TABLE_NAME + " SET name = ?, updated_at = ? WHERE id = ?";
+        try {
+            int rowsAffected = jdbcTemplate.update(con -> {
+                PreparedStatement ps = con.prepareStatement(sql);
+                ps.setString(1, user.name());
+                ps.setTimestamp(2, Timestamp.from(user.updatedAt().toInstant()));
+                ps.setLong(3, user.id());
+                return ps;
+            });
+            return rowsAffected > 0;
+        } catch (Exception e) {
+            log.error("Failed to update user: {}", e.getMessage());
+            return false;
+        }
+    }
+                
+
 
 }

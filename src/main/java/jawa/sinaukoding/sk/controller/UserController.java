@@ -4,6 +4,8 @@ import jawa.sinaukoding.sk.model.Authentication;
 import jawa.sinaukoding.sk.model.Response;
 import jawa.sinaukoding.sk.model.request.RegisterBuyerReq;
 import jawa.sinaukoding.sk.model.request.RegisterSellerReq;
+import jawa.sinaukoding.sk.model.request.updateProfile;
+import jawa.sinaukoding.sk.model.request.UpdateProfileReq;
 import jawa.sinaukoding.sk.service.UserService;
 import jawa.sinaukoding.sk.util.SecurityContextHolder;
 
@@ -46,9 +48,9 @@ public class UserController {
     }
 
     @PostMapping("/update-profile")
-    public Response<Object> updateProfile() {
-        // TODO: update profile
-        return null;
+    public Response<Object> updateProfile(@RequestBody UpdateProfileReq req ) {
+        Authentication authentication = SecurityContextHolder.getAuthentication(); 
+        return userService.updateProfile(authentication, req);
     }
 
     
