@@ -72,7 +72,7 @@ public class AuctionRepository {
             final OffsetDateTime createdAt = rs.getTimestamp("created_at") == null ? null : rs.getTimestamp("created_at").toInstant().atOffset(ZoneOffset.UTC);
             final OffsetDateTime updatedAt = rs.getTimestamp("updated_at") == null ? null : rs.getTimestamp("updated_at").toInstant().atOffset(ZoneOffset.UTC);
             final OffsetDateTime deletedAt = rs.getTimestamp("deleted_at") == null ? null : rs.getTimestamp("deleted_at").toInstant().atOffset(ZoneOffset.UTC);
-            return new Auction(id, code, name, description, offer, highestBid, highestBidderId, highestBidderName, status, startedAt, endedAt, createdBy, updatedBy, deletedBy, createdAt, updatedAt, deletedAt);
+            return new Auction(id, code, name, description, BigInteger.valueOf(offer), BigInteger.valueOf(highestBid), highestBidderId, highestBidderName, status, startedAt, endedAt, createdBy, updatedBy, deletedBy, createdAt, updatedAt, deletedAt);
         }));
     }
 
