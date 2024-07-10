@@ -59,5 +59,7 @@ public record Auction(Long id, //
 
     public enum Status {
         WAITING_FOR_APPROVAL, APPROVED, REJECTED, CLOSED
+
+
     }
 }
