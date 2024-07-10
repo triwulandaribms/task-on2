@@ -48,7 +48,7 @@ class AuctionServiceTest {
     @Test
     void testAuctionRejected_AuctionAlreadyRejected() {
         Auction auction = new Auction(1L, "CODE123", "Sample Auction", "This is a sample auction",
-                BigInteger.valueOf(1000), BigInteger.valueOf(3000), 1L, "nesya",
+                1000, 3000, 1L, "nesya",
                 Auction.Status.REJECTED, OffsetDateTime.now(), OffsetDateTime.now().plusDays(1),
                 1L, null, null, OffsetDateTime.now(), null, null);
 
@@ -68,7 +68,7 @@ class AuctionServiceTest {
         OffsetDateTime endTime = startTime.plusDays(1);
 
         Auction auction = new Auction(1L, "CODE123", "Sample Auction", "This is a sample auction",
-                BigInteger.valueOf(1000), BigInteger.valueOf(3000), 1L, "nesya",
+                1000, 3000, 1L, "nesya",
                 Auction.Status.WAITING_FOR_APPROVAL,startTime, endTime,
                 1L, null, null, OffsetDateTime.now(), null, null);
 
@@ -107,7 +107,7 @@ class AuctionServiceTest {
     @Test
     void testAuctionRejected_WaitingForApproval_Failed() {
         Auction auction = new Auction(1L, "CODE123", "Sample Auction", "This is a sample auction",
-                BigInteger.valueOf(1000), BigInteger.valueOf(3000), 1L, "nesya",
+                1000, 3000, 1L, "nesya",
                 Auction.Status.WAITING_FOR_APPROVAL, OffsetDateTime.now(), OffsetDateTime.now().plusDays(1),
                 1L, null, null, OffsetDateTime.now(), null, null);
 
