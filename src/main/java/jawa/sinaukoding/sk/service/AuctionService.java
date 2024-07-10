@@ -5,22 +5,49 @@ import jawa.sinaukoding.sk.entity.User;
 import jawa.sinaukoding.sk.model.Authentication;
 import jawa.sinaukoding.sk.model.Response;
 import jawa.sinaukoding.sk.model.request.SellerCreateAuctionReq;
-import jawa.sinaukoding.sk.repository.AuctionRepo;
+import jawa.sinaukoding.sk.repository.AuctionRepository;
+import jawa.sinaukoding.sk.util.HexUtils;
+import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
 import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Service;
-
 @Service
 public class AuctionService extends AbstractService {
-    private final AuctionRepo auctionRepository;
+    private final AuctionRepository auctionRepository;
 
-    public AuctionService(final Environment env, final AuctionRepo auctionRepository) {
+    private final byte[] jwtKey;
+
+    public AuctionService(final Environment env, final AuctionRepository auctionRepository) {
         this.auctionRepository = auctionRepository;
+        final String skJwtKey = env.getProperty("sk.jwt.key");
+        this.jwtKey = HexUtils.hexToBytes(skJwtKey);
+    }
+
+    public Response<Object> auctionRejected(final Authentication authentication, Long id){
+        return precondition(authentication, User.Role.ADMIN).orElseGet(()-> {
+            Optional<Auction> auctOpt = auctionRepository.findById(id);
+            if (auctOpt.isEmpty()) {
+                return Response.create("02", "01", "Auction not found", null);
+            }
+            Auction auction = auctOpt.get();
+            if (auction.status() == Auction.Status.REJECTED) {
+                return Response.create("02", "02", "Auction was Rejected", null);
+            }
+
+            if (auction.status() == Auction.Status.WAITING_FOR_APPROVAL) {
+                long rejected = auctionRepository.autionRejected(id);
+                if (rejected == 0L) {
+                    return Response.create("02", "03", "Failed to rejected an Auction", null);
+                } else {
+                    return Response.create("02", "00", "Succes for Rejected", null);
+                }
+            }
+            return Response.create("02", "04", "Invalid Token", null);
+        });
     }
 
     public Response<Object> createAuction(Authentication authentication, SellerCreateAuctionReq req) {
@@ -38,8 +65,8 @@ public class AuctionService extends AbstractService {
                     UUID.randomUUID().toString().substring(0, 8).toUpperCase(),
                     req.name(),
                     req.description(),
-                    offerPrice.intValue(),
-                    offerPrice.intValue(),
+                    offerPrice,
+                    offerPrice,
                     0L,
                     "",
                     Auction.Status.WAITING_FOR_APPROVAL,

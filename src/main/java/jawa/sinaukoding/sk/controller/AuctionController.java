@@ -5,20 +5,17 @@ import jawa.sinaukoding.sk.model.Response;
 import jawa.sinaukoding.sk.model.request.SellerCreateAuctionReq;
 import jawa.sinaukoding.sk.service.AuctionService;
 import jawa.sinaukoding.sk.util.SecurityContextHolder;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/secured/auction")
 public class AuctionController {
 
-    @Autowired
-    private AuctionService auctionService;
+    private final AuctionService auctionService;
+
+    public AuctionController(AuctionService auctionService){
+        this.auctionService = auctionService;
+    }
 
     // seller bisa createAuction
     @PostMapping("/create")
@@ -35,8 +32,9 @@ public class AuctionController {
     }
 
     // admin, bisa reject
-    @PostMapping("")
-    public Response<Object> rejectAuction() {
-        return Response.badRequest();
+    @PostMapping("/reject/{id}")
+    public Response<Object> rejectAuction(@PathVariable Long id) {
+        Authentication auth = SecurityContextHolder.getAuthentication();
+        return auctionService.auctionRejected(auth,id);
     }
 }
