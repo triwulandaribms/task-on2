@@ -1,6 +1,7 @@
 package jawa.sinaukoding.sk.repository;
 
 import jawa.sinaukoding.sk.entity.User;
+import jawa.sinaukoding.sk.model.Page;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
@@ -32,9 +33,14 @@ public class UserRepository {
 
     }
 
-    public List<User> listUsers(int page, int size) {
+    public Page<User> listUsers(int page, int size) {
         final int offset = (page - 1) * size;
-        final String sql = "SELECT * FROM %s ORDER BY id LIMIT ? OFFSET ?".formatted(User.TABLE_NAME);
+        final String sql = "SELECT * FROM %s WHERE deleted_at is NULL ORDER BY id LIMIT ? OFFSET ?".formatted(User.TABLE_NAME);
+        final String count = "SELECT COUNT(id) FROM %s".formatted(User.TABLE_NAME);
+
+        final Long totalData = jdbcTemplate.queryForObject(count, Long.class);
+        final Long totalPage = (totalData / size) + 1;
+
         final List<User> users = jdbcTemplate.query(sql, new Object[] { size, offset }, new RowMapper<User>() {
             @Override
             public User mapRow(ResultSet rs, int rowNum) throws SQLException {
@@ -55,7 +61,7 @@ public class UserRepository {
                         deletedAt == null ? null : deletedAt.toInstant().atOffset(ZoneOffset.UTC)); //
             }
         });
-        return users;
+        return new Page<>(totalPage, totalPage, page, size, users);
     }
 
     public long saveSeller(final User user) {
@@ -128,14 +134,10 @@ public class UserRepository {
             final Long createdBy = rs.getLong("created_by");
             final Long updatedBy = rs.getLong("updated_by");
             final Long deletedBy = rs.getLong("deleted_by");
-            final OffsetDateTime createdAt = rs.getTimestamp("created_at") == null ? null
-                    : rs.getTimestamp("created_at").toInstant().atOffset(ZoneOffset.UTC);
-            final OffsetDateTime updatedAt = rs.getTimestamp("updated_at") == null ? null
-                    : rs.getTimestamp("updated_at").toInstant().atOffset(ZoneOffset.UTC);
-            final OffsetDateTime deletedAt = rs.getTimestamp("deleted_at") == null ? null
-                    : rs.getTimestamp("deleted_at").toInstant().atOffset(ZoneOffset.UTC);
-            return new User(id, name, email, password, role, createdBy, updatedBy, deletedBy, createdAt, updatedAt,
-                    deletedAt);
+            final OffsetDateTime createdAt = rs.getTimestamp("created_at") == null ? null : rs.getTimestamp("created_at").toInstant().atOffset(ZoneOffset.UTC);
+            final OffsetDateTime updatedAt = rs.getTimestamp("updated_at") == null ? null : rs.getTimestamp("updated_at").toInstant().atOffset(ZoneOffset.UTC);
+            final OffsetDateTime deletedAt = rs.getTimestamp("deleted_at") == null ? null : rs.getTimestamp("deleted_at").toInstant().atOffset(ZoneOffset.UTC);
+            return new User(id, name, email, password, role, createdBy, updatedBy, deletedBy, createdAt, updatedAt, deletedAt);
         }));
     }
 

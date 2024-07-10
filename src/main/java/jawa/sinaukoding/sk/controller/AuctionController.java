@@ -1,6 +1,5 @@
 package jawa.sinaukoding.sk.controller;
 
-import jawa.sinaukoding.sk.entity.Auction;
 import jawa.sinaukoding.sk.model.Authentication;
 import jawa.sinaukoding.sk.model.Response;
 import jawa.sinaukoding.sk.model.request.SellerCreateAuctionReq;
@@ -8,16 +7,11 @@ import jawa.sinaukoding.sk.service.AuctionService;
 import jawa.sinaukoding.sk.util.SecurityContextHolder;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Optional;
-
-
 
 @RestController
 @RequestMapping("/secured/auction")
@@ -34,11 +28,10 @@ public class AuctionController {
     }
 
     // admin, bisa approve
-     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/{id}/approve")
-    public Response<Auction> approveAuction(@PathVariable Long id) {
-        Optional<Auction> approvedAuction = auctionService.approveAuction(id);
-        return approvedAuction.map(Response::ok).orElseGet(Response::badRequest);
+    public Response<Object> approveAuction(@PathVariable Long id) {
+        Authentication authentication = SecurityContextHolder.getAuthentication();
+        return auctionService.approveAuction(authentication, id);
     }
 
     // admin, bisa reject

@@ -2,6 +2,7 @@ package jawa.sinaukoding.sk.service;
 
 import jawa.sinaukoding.sk.entity.User;
 import jawa.sinaukoding.sk.model.Authentication;
+import jawa.sinaukoding.sk.model.Page;
 import jawa.sinaukoding.sk.model.request.LoginReq;
 import jawa.sinaukoding.sk.model.request.RegisterBuyerReq;
 import jawa.sinaukoding.sk.model.Response;
@@ -204,7 +205,8 @@ class UserServiceTest {
     @Test
     void listUser() {
         final User admin = userRepository.findById(1L).orElseThrow();
-        Mockito.when(userRepository.listUsers(1, 10)).thenReturn(List.of(admin));
+        Page<User> userPage = new Page<>(1, 1, 1, 10, List.of(admin));
+        Mockito.when(userRepository.listUsers(ArgumentMatchers.anyInt(), ArgumentMatchers.anyInt())).thenReturn(userPage);
         final Authentication authentication = new Authentication(admin.id(), admin.role(), true);
 
         Response<Object> response = userService.listUsers(authentication, 1, 10);

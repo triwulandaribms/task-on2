@@ -2,6 +2,7 @@ package jawa.sinaukoding.sk.service;
 
 import jawa.sinaukoding.sk.entity.User;
 import jawa.sinaukoding.sk.model.Authentication;
+import jawa.sinaukoding.sk.model.Page;
 import jawa.sinaukoding.sk.model.request.LoginReq;
 import jawa.sinaukoding.sk.model.request.RegisterBuyerReq;
 import jawa.sinaukoding.sk.model.request.RegisterSellerReq;
@@ -42,9 +43,10 @@ public final class UserService extends AbstractService {
             if (page <= 0 || size <= 0) {
                 return Response.badRequest();
             }
-            final List<UserDto> users = userRepository.listUsers(page, size) //
-                    .stream().map(user -> new UserDto(user.name(), user.role())).toList();
-            return Response.create("09", "00", "Sukses", users);
+            Page<User> userPage = userRepository.listUsers(page, size);
+            List<UserDto> users = userPage.data().stream().map(user -> new UserDto(user.id(), user.name())).toList();
+            Page<UserDto> p = new Page<>(userPage.totalData(), userPage.totalPage(), userPage.page(), userPage.saze(), users);
+            return Response.create("09", "00", "Sukses", p);
         });
     }
 
@@ -163,7 +165,7 @@ public final class UserService extends AbstractService {
             if (user.deletedBy() != null || user.deletedAt() != null) {
                 return Response.create("07", "04", "User account has been deleted", null);
             }
-            UserDto userDto = new UserDto(user.name(), user.role());
+            UserDto userDto = new UserDto(user.id(), user.name());
             return Response.create("07", "00", "Success to update password", userDto);
         } catch (Exception e) {
             return Response.create("07", "02", "Invalid Token", null);
