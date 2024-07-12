@@ -8,7 +8,6 @@ import jawa.sinaukoding.sk.repository.AuctionRepository;
 import org.junit.jupiter.api.Assertions;
 import jawa.sinaukoding.sk.entity.User;
 import jawa.sinaukoding.sk.model.Authentication;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
@@ -18,8 +17,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-
-import java.math.BigInteger;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Optional;
@@ -48,7 +45,7 @@ class AuctionServiceTest {
     @Test
     void testAuctionRejected_AuctionAlreadyRejected() {
         Auction auction = new Auction(1L, "CODE123", "Sample Auction", "This is a sample auction",
-                1000, 3000, 1L, "nesya",
+                10000L, 30000L, 1L, "nesya",
                 Auction.Status.REJECTED, OffsetDateTime.now(), OffsetDateTime.now().plusDays(1),
                 1L, null, null, OffsetDateTime.now(), null, null);
 
@@ -66,16 +63,16 @@ class AuctionServiceTest {
     void testAuctionRejected_WaitingForApproval_Success() {
         OffsetDateTime startTime = OffsetDateTime.of(2024, 7, 10, 0, 0, 0, 0, ZoneOffset.UTC);
         OffsetDateTime endTime = startTime.plusDays(1);
-
+        Authentication adminAuth = new Authentication(1L, User.Role.ADMIN, true);
         Auction auction = new Auction(1L, "CODE123", "Sample Auction", "This is a sample auction",
-                1000, 3000, 1L, "nesya",
+                10000L, 30000L, 1L, "nesya",
                 Auction.Status.WAITING_FOR_APPROVAL,startTime, endTime,
                 1L, null, null, OffsetDateTime.now(), null, null);
 
         Mockito.when(auctionRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(auction));
-        Mockito.when(auctionRepository.autionRejected(ArgumentMatchers.anyLong())).thenReturn(1L);
+        Mockito.when(auctionRepository.updateAuctionStatus(adminAuth.id(),ArgumentMatchers.anyLong(), Auction.Status.REJECTED)).thenReturn(1L);
 
-        Authentication adminAuth = new Authentication(1L, User.Role.ADMIN, true);
+
         Response<Object> response = auctionService.auctionRejected(adminAuth, 1L);
 
         Assertions.assertNotNull(response);
@@ -107,14 +104,14 @@ class AuctionServiceTest {
     @Test
     void testAuctionRejected_WaitingForApproval_Failed() {
         Auction auction = new Auction(1L, "CODE123", "Sample Auction", "This is a sample auction",
-                1000, 3000, 1L, "nesya",
+                10000L, 30000L, 1L, "nesya",
                 Auction.Status.WAITING_FOR_APPROVAL, OffsetDateTime.now(), OffsetDateTime.now().plusDays(1),
                 1L, null, null, OffsetDateTime.now(), null, null);
-
-        Mockito.when(auctionRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(auction));
-        Mockito.when(auctionRepository.autionRejected(ArgumentMatchers.anyLong())).thenReturn(0L);
-
         Authentication adminAuth = new Authentication(1L, User.Role.ADMIN, true);
+        Mockito.when(auctionRepository.findById(ArgumentMatchers.anyLong())).thenReturn(Optional.of(auction));
+        Mockito.when(auctionRepository.updateAuctionStatus(adminAuth.id(),ArgumentMatchers.anyLong(), Auction.Status.REJECTED)).thenReturn(0L);
+
+
         Response<Object> response = auctionService.auctionRejected(adminAuth, 1L);
 
         Assertions.assertNotNull(response);

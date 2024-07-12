@@ -4,8 +4,8 @@ import java.math.BigInteger;
 
 public record SellerCreateAuctionReq(String name,  //
                                      String description, //
-                                     BigInteger minimumPrice, //
-                                     BigInteger maximumPrice, //
+                                     Long minimumPrice, //
+                                     //BigInteger maximumPrice, //
                                      String startedAt, //
                                      String endedAt //
 ) {

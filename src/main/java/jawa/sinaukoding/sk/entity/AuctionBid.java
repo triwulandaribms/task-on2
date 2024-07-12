@@ -13,15 +13,15 @@ public record AuctionBid(Long id, //
                          OffsetDateTime createdAt //
                           ) {
 
-    public static final String TABLE_NAME = "sk_auction_bid";
+    public static final String TABLE_NAME = "sk_auction_bit";
     public PreparedStatement insert(final Connection connection) {
         try {
-            final String sql = "INSERT INTO " + TABLE_NAME + " (name, email, password, role, created_by, created_at) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)";
-            final PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-            ps.setLong(1, auctionId);
-            ps.setLong(2, bid);
-            ps.setString(3, String.valueOf(bidder));
-            ps.setTimestamp(4, Timestamp.valueOf(createdAt.atZoneSameInstant(OffsetDateTime.now().getOffset()).toLocalDateTime()));
+            String query = "INSERT INTO " + TABLE_NAME + " (auction_id, bid, bidder, created_at) " + "VALUES (?, ?, ?, CURRENT_TIMESTAMP)";
+            PreparedStatement ps = connection.prepareStatement(query, PreparedStatement.RETURN_GENERATED_KEYS);
+            ps.setLong(1, this.auctionId());
+            ps.setLong(2, this.bid());
+            ps.setLong(3, this.bidder());
+
             return ps;
         } catch (Exception e) {
             return null;
