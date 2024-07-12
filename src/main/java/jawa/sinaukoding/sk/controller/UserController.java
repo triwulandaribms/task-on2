@@ -1,5 +1,6 @@
 package jawa.sinaukoding.sk.controller;
 
+import jawa.sinaukoding.sk.exception.ListRequestException;
 import jawa.sinaukoding.sk.model.Authentication;
 import jawa.sinaukoding.sk.model.Response;
 import jawa.sinaukoding.sk.model.request.RegisterBuyerReq;
@@ -26,8 +27,13 @@ public class UserController {
     @GetMapping("/list")
     public Response<Object> listUser(@RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "size", defaultValue = "3") int size) {
-        Authentication authentication = SecurityContextHolder.getAuthentication();
-        return userService.listUsers(authentication, page, size);
+          try {
+                Authentication authentication = SecurityContextHolder.getAuthentication();
+                return userService.listUsers(authentication, page, size);
+        
+            } catch (Exception e) {
+                throw new  ListRequestException("gagal liat list user");
+            }
     }
 
     @PostMapping("/register-seller")
