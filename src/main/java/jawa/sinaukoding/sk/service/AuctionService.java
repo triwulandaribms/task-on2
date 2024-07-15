@@ -69,9 +69,9 @@ public class AuctionService extends AbstractService {
             if (page <= 0 || size <= 0) {
                 return Response.badRequest();
             }
-            Page<Auction> auctionPage = auctionRepository.listAuctions(page, size, null);
+            Page<Auction> auctionPage = auctionRepository.listAuctions(page, size, status);
             List<AuctionDto> auctions = auctionPage.data().stream().map(
-                    auction -> new AuctionDto(auction.id(), auction.name(), null, null, null, null, null, null, null))
+                    auction -> new AuctionDto(auction.id(), auction.code(),auction.name(), auction.description(), auction.offer(), auction.highestBid(), auction.startedAt(), auction.endedAt(),auction.status()))
                     .toList();
             Page<AuctionDto> p = new Page<>(auctionPage.totalData(), auctionPage.totalPage(), auctionPage.page(),
                     auctionPage.saze(), auctions);

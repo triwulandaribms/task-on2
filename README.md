@@ -20,11 +20,11 @@
         "password":"12345678"
     }
     ```
-    - Dengan menggunakan METHOD POST dan url:
+    - Gunakan METHOD POST dan url:
     ```bash
     http://127.0.0.1:8080/login
     ```
-* lakukan register seller untuk mendapatkan token seller
+* Lakukan register seller untuk mendapatkan token seller
     - cara register seller dengan menginputkan:
     ```bash
     {
@@ -38,7 +38,7 @@
     ```bash
     http://127.0.0.1:8080/secured/user/register-seller
     ```
-* lakukan register buyer untuk mendapatkan token buyer
+* Lakukan register buyer untuk mendapatkan token buyer
     - cara register buyer dengan menginputkan:
     ```bash
     {
@@ -52,7 +52,7 @@
     ```bash
    http://127.0.0.1:8080/secured/user/register-buyer
     ```
-* lalu login sebagai seller untuk mendapatkan token
+* Lalu jika ingin login sebagai seller supaya mendapatkan token, berikut dibawah ini
     - cara login sebagai seller dengan menginputkan:
     ```bash
     {
@@ -60,11 +60,11 @@
         "password":"12345678"
     }
     ```
-    - gunakan METHOD POST dan url:
+    - Gunakan METHOD POST dan url:
     ```bash
      http://127.0.0.1:8080/login
     ```
-* dan jika login sebagai buyer untuk mendapatkan token
+* Lalu jika ingin login sebagai buyer supaya mendapatkan token, berikut dibawah ini
     - cara login sebagai buyer dengan menginputkan:
     ```bash
     {
@@ -72,51 +72,51 @@
         "password":"12345678"
     }
     ```
-    - gunakan METHOD POST dan url:
+    - Gunakan METHOD POST dan url:
     ```bash
      http://127.0.0.1:8080/login
     ```
-* lalu untuk mendapatkan list data pengguna, menggunakan role admin dengan METHOD GET dan url sebagai berikut:
+* Lalu jika ingin mendapatkan list data pengguna, gunakan role admin dengan METHOD GET dan url sebagai berikut:
   - http://127.0.0.1:8080/secured/user/list
   - lalu tambahkan token dari role admin pada Auth
 
-* lalu pengguna dapat melakukan reset password dan mengambil token role masing - masing dan dimasukan pada Auth
-  - cara reset password untuk pengguna dengan menginputkan:
+* Lalu pengguna dapat melakukan reset password dan mengambil token role masing - masing dan dimasukan pada Auth
+  - Cara reset password untuk pengguna dengan menginputkan:
     ```bash
     {
         "newPassword":"12345678"
     }
     ```
-    - gunakan METHOD POST dan url:
+  - Gunakan METHOD POST dan url:
     ```bash
      http://127.0.0.1:8080/secured/user/reset-password
     ```
-* lalu pengguna dapat melakukan update profil dan mengambil token role masing - masing dan dimasukan pada Auth
-  - cara update profile untuk pengguna dengan menginputkan:
+* Lalu pengguna dapat melakukan update profil dan mengambil token role masing - masing dan dimasukan pada Auth
+  - Cara update profile untuk pengguna dengan menginputkan:
     ```bash
     {
         "name":"song song"
     }
     ```
-    - gunakan METHOD POST dan url:
+    - Gunakan METHOD POST dan url:
     ```bash
     http://127.0.0.1:8080/secured/user/update-profile
     ```
 
- * lalu role admin dapat melakukan delete user
-   - cara delete user dengan menginputkan :
+ * Lalu role admin dapat melakukan delete user
+   - Cara delete user dengan menginputkan :
     ```bash
     {
         "id":4
     }
     ```
-    - gunakan METHOD DELETE dan url:
+    - Gunakan METHOD DELETE dan url:
     ```bash
     http://127.0.0.1:8080/secured/user/delete-user
     ```
 
-* lalu seller melakukan create auction dengan role seller
-  - cara create auction dengan menginputkan:
+* Selanjutnya seller melakukan create auction dengan role seller guna untuk data pelelangan
+  - Cara create auction dengan menginputkan:
     ```bash
     {
         "name": "shong-khong",
@@ -126,8 +126,57 @@
         "endedAt": "2025-07-20T00:00:00Z"
     }
     ```
-  - gunakan METHOD POST dan url:
+  - Gunakan METHOD POST dan url:
     ```bash
     http://127.0.0.1:8080/secured/auction/create-auction
     ```
+
+* Lalu role admin dapat melakukan list auction 
+  - Gunakan METHOD GET dan url sebagai berikut :
+  - url dibawah untuk GET mendapatkan status approved
+    ```bash
+    http://127.0.0.1:8080/secured/auction/list-auction
+    ```
+    - url dibawah untuk GET mendapatkan status rejected 
+    ```bash
+    http://127.0.0.1:8080/secured/auction/list-auction?status=REJECTED
+    ```
+    - url dibawah untuk GET mendapatkan status waiting for approval 
+    ```bash
+    http://127.0.0.1:8080/secured/auction/list-auction?status=WAITING_FOR_APPROVAL
+    ```
+* Selanjutnya role admin melakukan approve untuk memulai pelelangan
+  - Sebelum melakukan approve admin harus login terlebih dahulu untuk mendapatkan token
+  - Lalu token dimasukkan pada Auth 
+  - Gunakan METHOD POST dan url:
+     ```bash
+        http://127.0.0.1:8080/secured/auction/6/approve
+    ```
+  - Di dalam url masukan id pengguna yang akan di approve
+  - Ketika akan approve, id pengguna yang dipilih harus berstatus waiting for approval
+
+
+* Lalu role admin dapat juga melakukan reject untuk penolakan saat melalukan pelelangan
+  - Sebelum melakukan reject admin harus login terlebih dahulu untuk mendapatkan token
+  - Lalu token dimasukkan pada Auth
+  - Gunakan METHOD POST dan url:
+     ```bash
+        http://127.0.0.1:8080/secured/auction/reject/7
+    ```
+  - Di dalam url masukan id pengguna yang akan di reject
+  - Ketika akan reject, id pengguna yang dipilih harus berstatus waiting for approval
+
+* Lalu role buyer dapat melakukan bidding 
+  - Gunakan METHOD POST dan url :
+    ```bash
+    http://127.0.0.1:8080/secured/auction/create-bid
+    ```
+  - cara membuat bidding dengan menginputkan 
+    ```bash
+    {
+      "auctionId":6,
+      "bid":15000000
+    }
+    ```
+
 

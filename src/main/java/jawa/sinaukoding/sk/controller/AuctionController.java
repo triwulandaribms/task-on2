@@ -23,7 +23,7 @@ public class AuctionController {
     @GetMapping("/list-auction")
     public Response<Object> listAuctions(@RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "size", defaultValue = "10") int size,
-            @RequestParam(value = "status", required = false) String status) {
+            @RequestParam(value = "status", defaultValue = "APPROVED") String status) {
 
         Authentication authentication = SecurityContextHolder.getAuthentication();
         return auctionService.listAuctions(authentication, page, size, status);

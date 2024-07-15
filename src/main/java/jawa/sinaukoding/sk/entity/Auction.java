@@ -7,6 +7,7 @@ import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 
 public record Auction(
 
@@ -35,20 +36,21 @@ public record Auction(
     public PreparedStatement insert(final Connection connection) {
         try {
             String query = "INSERT INTO " + TABLE_NAME + " (code, name, description, offer, started_at, ended_at, highest_bid, highest_bidder_id, hignest_bidder_name, status, created_by, created_at) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)";
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             PreparedStatement ps = connection.prepareStatement(query, PreparedStatement.RETURN_GENERATED_KEYS);
             ps.setString(1, this.code());
             ps.setString(2, this.name());
             ps.setString(3, this.description());
             ps.setLong(4, this.offer());
-            ps.setTimestamp(5, Timestamp.valueOf(this.startedAt().toLocalDateTime()));
-            ps.setTimestamp(6, Timestamp.valueOf(this.endedAt().toLocalDateTime()));
+            ps.setObject(5,this.startedAt());
+            ps.setObject(6, this.endedAt());
             ps.setLong(7, this.highestBid());
             ps.setLong(8, this.highestBidderId());
             ps.setString(9, this.hignestBidderName());
             ps.setString(10, this.status().toString());
             ps.setLong(11, this.createdBy());
-
+            ps.setObject(12, OffsetDateTime.now(ZoneOffset.UTC));
+            System.out.println(Timestamp.valueOf(this.startedAt().toLocalDateTime()));
             return ps;
         } catch (Exception e) {
             return null;

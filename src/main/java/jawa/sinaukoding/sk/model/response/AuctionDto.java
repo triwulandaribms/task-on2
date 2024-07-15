@@ -1,17 +1,20 @@
 package jawa.sinaukoding.sk.model.response;
 
 import java.sql.Timestamp;
+import java.time.OffsetDateTime;
+
+import jawa.sinaukoding.sk.entity.Auction;
 
 public record AuctionDto(
         Long id,
      String code,
      String name,
      String description,
-     Long minimumPrice,
+     Long offer,
      Long highestBid,
-     Timestamp startedAt,
-     Timestamp endedAt,
-     String status){
+     OffsetDateTime startedAt,
+     OffsetDateTime endedAt,
+     Auction.Status status){
 
   
 //    public AuctionResponse(String code, String name, String description, BigInteger minimumPrice, BigInteger maximumPrice, Timestamp startedAt, Timestamp endedAt) {

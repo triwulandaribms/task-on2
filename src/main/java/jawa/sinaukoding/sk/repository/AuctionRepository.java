@@ -77,19 +77,19 @@ public class AuctionRepository {
     
             final String countSql = "SELECT COUNT(id) AS total_data FROM %s WHERE status = ? AND deleted_at IS NULL".formatted(Auction.TABLE_NAME);
             
-            final Long totalData = jdbcTemplate.queryForObject(countSql, new Object[]{status}, Long.class);
+            final Long totalData = jdbcTemplate.queryForObject(countSql, Long.class,  new Object[]{status});
             final Long totalPage = (totalData / size) + ((totalData % size == 0) ? 0 : 1);
     
            
-            final List<Auction> auctions = jdbcTemplate.query(sql, new Object[]{status, size, offset}, new RowMapper<Auction>() {
+            final List<Auction> auctions = jdbcTemplate.query(sql, new RowMapper<Auction>() {
                 @Override
                 public Auction mapRow(ResultSet rs, int rowNum) throws SQLException {
                     final Auction.Status status = Auction.Status.valueOf(rs.getString("status"));
-                    final Timestamp startedAt = rs.getTimestamp("started_at");
-                    final Timestamp endedAt = rs.getTimestamp("ended_at");
-                    final Timestamp createdAt = rs.getTimestamp("created_at");
-                    final Timestamp updatedAt = rs.getTimestamp("updated_at");
-                    final Timestamp deletedAt = rs.getTimestamp("deleted_at");
+                    final String startedAt = rs.getString("started_at");
+                    final String endedAt = rs.getString("ended_at");
+                    final String createdAt = rs.getString("created_at");
+                    final String updatedAt = rs.getString("updated_at");
+                    final String deletedAt = rs.getString("deleted_at");
     
                     return new Auction(
                             rs.getLong("id"),
@@ -101,16 +101,17 @@ public class AuctionRepository {
                             rs.getLong("highest_bidder_id"),
                             rs.getString("hignest_bidder_name"),
                             status,
-                            startedAt == null ? null : startedAt.toInstant().atOffset(ZoneOffset.UTC),
-                            endedAt == null ? null : endedAt.toInstant().atOffset(ZoneOffset.UTC),
+                            startedAt == null ? null : OffsetDateTime.parse(startedAt),
+                            endedAt == null ? null : OffsetDateTime.parse(endedAt),
                             rs.getLong("created_by"),
                             rs.getLong("updated_by"),
                             rs.getLong("deleted_by"),
-                            createdAt == null ? null : createdAt.toInstant().atOffset(ZoneOffset.UTC),
-                            updatedAt == null ? null : updatedAt.toInstant().atOffset(ZoneOffset.UTC),
-                            deletedAt == null ? null : deletedAt.toInstant().atOffset(ZoneOffset.UTC));
+                            createdAt == null ? null : OffsetDateTime.parse(createdAt),
+                            updatedAt == null ? null : OffsetDateTime.parse(updatedAt),
+                            deletedAt == null ? null : OffsetDateTime.parse(deletedAt));
                 }
-            });
+
+            },new Object[]{status, size, offset});
     
             return new Page<>(totalData, totalPage, page, size, auctions);
         } catch (Exception e) {
