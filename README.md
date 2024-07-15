@@ -3,13 +3,13 @@
 
 * Jalankan database migration tools
 ```bash
-./mvnw clean flyway:migrate -Dflyway.configFiles=tools/db/migrations.conf
+  mvn clean flyway:migrate -Dflyway.configFiles=tools/db/migrations.conf
 ```
 
 
 * Jalankan aplikasi
 ```bash
-./mvnw spring-boot:run 
+  mvn spring-boot:run 
 ```
 
 * Login admin terlebih dahulu untuk mendapatkan token
