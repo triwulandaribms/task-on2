@@ -134,42 +134,39 @@ public final class UserService extends AbstractService {
     }
 
     public Response<Object> resetPassword(final Authentication authentication, final ResetPasswordReq req) {
-        System.out.println("Authh : " + authentication);
-
         if (req.newPassword() == null || req.newPassword().isEmpty()) {
-            return Response.create("07", "03", "New password must not be empty", null);
+            return Response.create("07", "01", "Password baru tidak boleh kosong", null);
         }
         if (req.newPassword().length() < 8) {
-            return Response.create("07", "03", "New password must be at least 8 characters long", null);
+            return Response.create("07", "02", "Password baru harus memiliki minimal 8 karakter", null);
         }
 
         try {
             Optional<User> userOpt = userRepository.findById(authentication.id());
             if (userOpt.isEmpty()) {
-                return Response.create("07", "01", "User not found", null);
+                return Response.create("07", "03", "Pengguna tidak ditemukan", null);
             }
 
             User user = userOpt.get();
             if (passwordEncoder.matches(req.newPassword(), user.password())) {
-                return Response.create("07", "03", "Old password and new password are same. Please use a new password",
+                return Response.create("07", "04", "Password lama dan password baru sama. Silakan gunakan password yang berbeda",
                         null);
             }
 
-            if (passwordEncoder.matches(req.newPassword(), user.password())) {
-                return Response.create("07", "03", "was Deleted", null);
+            if ((user.deletedBy() != null && user.deletedBy() != 0) || user.deletedAt() != null) {
+                return Response.create("07", "05", "Akun pengguna telah dihapus", null);
             }
+
             String newEncodedPassword = passwordEncoder.encode(req.newPassword());
             long updatedUserId = userRepository.resetPassword(user.id(), newEncodedPassword);
             if (updatedUserId == 0L) {
-                return Response.create("07", "02", "Failed to update password", null);
+                return Response.create("07", "06", "Gagal memperbarui password", null);
             }
-            if (user.deletedBy() != null || user.deletedAt() != null) {
-                return Response.create("07", "04", "User account has been deleted", null);
-            }
+
             UserDto userDto = new UserDto(user.id(), user.name());
-            return Response.create("07", "00", "Success to update password", userDto);
+            return Response.create("07", "00", "Password berhasil diperbarui", userDto);
         } catch (Exception e) {
-            return Response.create("07", "02", "Invalid Token", null);
+            return Response.create("07", "07", "Token tidak valid", null);
         }
     }
 
