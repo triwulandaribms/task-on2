@@ -32,11 +32,10 @@ public class AuctionController {
     // list auction buyer
     @GetMapping("/list-auction-buyer")
     public Response<Object> listAuctionsBuyer(@RequestParam(value = "page", defaultValue = "1") int page,
-            @RequestParam(value = "size", defaultValue = "10") int size,
-            @RequestParam(value = "status", defaultValue = "APPROVED") String status) {
+            @RequestParam(value = "size", defaultValue = "10") int size) {
 
         Authentication authentication = SecurityContextHolder.getAuthentication();
-        return auctionService.listAuctionsBuyer(authentication, page, size, status);
+        return auctionService.listAuctionsBuyer(authentication, page, size);
     }
 
     // seller bisa createAuction

@@ -132,6 +132,7 @@
     ```
 
 * Lalu role admin dapat melakukan list auction 
+  - Masukan token admin pada Auth
   - Gunakan METHOD GET dan url sebagai berikut :
   - url dibawah untuk GET mendapatkan status approved
     ```bash
@@ -144,6 +145,12 @@
     - url dibawah untuk GET mendapatkan status waiting for approval 
     ```bash
     http://127.0.0.1:8080/secured/auction/list-auction?status=WAITING_FOR_APPROVAL
+    ```
+* Lalu role buyer juga dapat melakukan list auction yang berstatus approved
+  - Masukan token buyer pada Auth
+  - Gunakan METHOD GET dan url sebagai berikut
+   ```bash
+   http://127.0.0.1:8080/secured/auction/list-auction-buyer
     ```
 * Selanjutnya role admin melakukan approve untuk memulai pelelangan
   - Sebelum melakukan approve admin harus login terlebih dahulu untuk mendapatkan token

@@ -120,14 +120,14 @@ public class AuctionRepository {
         return null;
     }
     
-    public Page<Auction> listAuctionsBuyer(int page, int size, String status){
+    public Page<Auction> listAuctionsBuyer(int page, int size){
         try {
             final int offset = (page - 1) * size;
-            final String sql = "SELECT  * FROM %s WHERE status = ? AND deleted_at IS NULL ORDER BY id LIMIT ? OFFSET ?" .formatted(Auction.TABLE_NAME);
+            final String sql = "SELECT  * FROM %s WHERE deleted_at IS NULL AND status = 'APPROVED' ORDER BY id LIMIT ? OFFSET ?" .formatted(Auction.TABLE_NAME);
     
-            final String countSql = "SELECT COUNT(id) AS total_data FROM %s WHERE status = ? AND deleted_at IS NULL".formatted(Auction.TABLE_NAME);
+            final String countSql = "SELECT COUNT(id) AS total_data FROM %s WHERE deleted_at IS NULL AND status = 'APPROVED'".formatted(Auction.TABLE_NAME);
             
-            final Long totalData = jdbcTemplate.queryForObject(countSql, Long.class,  new Object[]{status});
+            final Long totalData = jdbcTemplate.queryForObject(countSql, Long.class);
             final Long totalPage = (totalData / size) + ((totalData % size == 0) ? 0 : 1);
     
            
@@ -161,7 +161,7 @@ public class AuctionRepository {
                             deletedAt == null ? null : OffsetDateTime.parse(deletedAt));
                 }
 
-            },new Object[]{status, size, offset});
+            },new Object[]{size, offset});
     
             return new Page<>(totalData, totalPage, page, size, auctions);
         } catch (Exception e) {

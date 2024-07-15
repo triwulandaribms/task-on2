@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -170,40 +171,76 @@ public final class UserService extends AbstractService {
         }
     }
 
-    public Response<Object> deletedUser(Authentication authentication, DeleteUserReq req) {
-        return precondition(authentication, User.Role.ADMIN).orElseGet(() -> {
-            Optional<User> userOpt = userRepository.findById(authentication.id());
-            if (userOpt.isEmpty()) {
-                return Response.create("07", "01", "ID tidak ditemukan", null);
-            }
+    // public Response<Object> deletedUser(Authentication authentication, DeleteUserReq req) {
+    //     return precondition(authentication, User.Role.ADMIN).orElseGet(() -> {
+    //         Optional<User> userOpt = userRepository.findById(authentication.id());
+    //         if (userOpt.isEmpty()) {
+    //             return Response.create("07", "01", "ID tidak ditemukan", null);
+    //         }
 
-            User dataUser = userOpt.get();
+    //         User dataUser = userOpt.get();
 
-            if (dataUser.deletedAt() != null) {
-                return Response.create("10", "03", "Data sudah dihapus", null);
-            }
+    //         if (dataUser.deletedAt() != null) {
+    //             return Response.create("10", "03", "Data sudah dihapus", null);
+    //         }
 
-            User updatedUser = new User(
-                    dataUser.id(),
-                    dataUser.name(),
-                    dataUser.email(),
-                    dataUser.password(),
-                    dataUser.role(),
-                    dataUser.createdBy(),
-                    dataUser.updatedBy(),
-                    authentication.id(),
-                    dataUser.createdAt(),
-                    dataUser.updatedAt(),
-                    OffsetDateTime.now());
+    //         User updatedUser = new User(
+    //                 dataUser.id(),
+    //                 dataUser.name(),
+    //                 dataUser.email(),
+    //                 dataUser.password(),
+    //                 dataUser.role(),
+    //                 dataUser.createdBy(),
+    //                 dataUser.updatedBy(),
+    //                 authentication.id(),
+    //                 dataUser.createdAt(),
+    //                 dataUser.updatedAt(),
+    //                 OffsetDateTime.now());
 
-            Long updatedRows = userRepository.deletedUser(updatedUser);
-            if (updatedRows > 0) {
-                return Response.create("10", "00", "Berhasil hapus data", null);
-            } else {
-                return Response.create("10", "01", "Gagal hapus data", null);
-            }
-        });
-    }
+    //         Long updatedRows = userRepository.deletedUser(updatedUser);
+    //         if (updatedRows > 0) {
+    //             return Response.create("10", "00", "Berhasil hapus data", null);
+    //         } else {
+    //             return Response.create("10", "01", "Gagal hapus data", null);
+    //         }
+    //     });
+    // }
+
+    public Response<Object> deletedUser(Authentication authentication, Map<String, Object> req) {
+    return precondition(authentication, User.Role.ADMIN).orElseGet(() -> {
+        Optional<User> userOpt = userRepository.findById(authentication.id());
+        if (userOpt.isEmpty()) {
+            return Response.create("07", "01", "ID tidak ditemukan", null);
+        }
+
+        User dataUser = userOpt.get();
+
+        if (dataUser.deletedAt() != null) {
+            return Response.create("10", "03", "Data sudah dihapus", null);
+        }
+
+        User updatedUser = new User(
+                dataUser.id(),
+                dataUser.name(),
+                dataUser.email(),
+                dataUser.password(),
+                dataUser.role(),
+                dataUser.createdBy(),
+                dataUser.updatedBy(),
+                authentication.id(),
+                dataUser.createdAt(),
+                dataUser.updatedAt(),
+                OffsetDateTime.now());
+
+        Long updatedRows = userRepository.deletedUser(updatedUser);
+        if (updatedRows > 0) {
+            return Response.create("10", "00", "Berhasil hapus data", null);
+        } else {
+            return Response.create("10", "01", "Gagal hapus data", null);
+        }
+    });
+}
+
 
     public Response<Object> updateProfile(final Authentication authentication, final UpdateProfileReq req) {
         return precondition(authentication, User.Role.ADMIN, User.Role.BUYER, User.Role.SELLER).orElseGet(() -> {

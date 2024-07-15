@@ -60,7 +60,7 @@ public class UserController {
     }
 
     @DeleteMapping("/delete-user")
-    public Response<Object> deletedUser(@RequestBody DeleteUserReq req) {
+    public Response<Object> deletedUser(@RequestBody Map<String, Object> req) {
         Authentication authentication = SecurityContextHolder.getAuthentication();
         return userService.deletedUser(authentication, req);
     }
