@@ -120,6 +120,56 @@ public class AuctionRepository {
         return null;
     }
     
+    public Page<Auction> listAuctionsBuyer(int page, int size, String status){
+        try {
+            final int offset = (page - 1) * size;
+            final String sql = "SELECT  * FROM %s WHERE status = ? AND deleted_at IS NULL ORDER BY id LIMIT ? OFFSET ?" .formatted(Auction.TABLE_NAME);
+    
+            final String countSql = "SELECT COUNT(id) AS total_data FROM %s WHERE status = ? AND deleted_at IS NULL".formatted(Auction.TABLE_NAME);
+            
+            final Long totalData = jdbcTemplate.queryForObject(countSql, Long.class,  new Object[]{status});
+            final Long totalPage = (totalData / size) + ((totalData % size == 0) ? 0 : 1);
+    
+           
+            final List<Auction> auctions = jdbcTemplate.query(sql, new RowMapper<Auction>() {
+                @Override
+                public Auction mapRow(ResultSet rs, int rowNum) throws SQLException {
+                    final Auction.Status status = Auction.Status.valueOf(rs.getString("status"));
+                    final String startedAt = rs.getString("started_at");
+                    final String endedAt = rs.getString("ended_at");
+                    final String createdAt = rs.getString("created_at");
+                    final String updatedAt = rs.getString("updated_at");
+                    final String deletedAt = rs.getString("deleted_at");
+    
+                    return new Auction(
+                            rs.getLong("id"),
+                            rs.getString("code"),
+                            rs.getString("name"),
+                            rs.getString("description"),
+                            rs.getLong("offer"),
+                            rs.getLong("highest_bid"),
+                            rs.getLong("highest_bidder_id"),
+                            rs.getString("hignest_bidder_name"),
+                            status,
+                            startedAt == null ? null : OffsetDateTime.parse(startedAt),
+                            endedAt == null ? null : OffsetDateTime.parse(endedAt),
+                            rs.getLong("created_by"),
+                            rs.getLong("updated_by"),
+                            rs.getLong("deleted_by"),
+                            createdAt == null ? null : OffsetDateTime.parse(createdAt),
+                            updatedAt == null ? null : OffsetDateTime.parse(updatedAt),
+                            deletedAt == null ? null : OffsetDateTime.parse(deletedAt));
+                }
+
+            },new Object[]{status, size, offset});
+    
+            return new Page<>(totalData, totalPage, page, size, auctions);
+        } catch (Exception e) {
+            log.error("Terjadi kesalahan saat mengambil data lelang: {}", e.getMessage());
+        }
+        return null;
+    }
+
     public Long saveAuction(final Auction auction) {
         final KeyHolder keyHolder = new GeneratedKeyHolder();
         try {
