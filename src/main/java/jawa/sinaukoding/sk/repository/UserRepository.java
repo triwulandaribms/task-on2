@@ -61,7 +61,7 @@ public class UserRepository {
                         deletedAt == null ? null : deletedAt.toInstant().atOffset(ZoneOffset.UTC)); //
             }
         });
-        return new Page<>(totalPage, totalPage, page, size, users);
+        return new Page<>(totalData, totalPage, page, size, users);
     }
 
     public long saveSeller(final User user) {
@@ -172,24 +172,25 @@ public class UserRepository {
         }));
     }
 
-    public long deletedUser(User user) {
+    public long deletedUser(final User user) {
         try {
             String sql = "UPDATE " + User.TABLE_NAME + " SET deleted_at=CURRENT_TIMESTAMP, deleted_by=? WHERE id=?";
             return jdbcTemplate.update(sql, user.deletedBy(), user.id());
         } catch (Exception e) {
-            log.error("Failed to soft delete user: {}", e.getMessage());
+            log.error("gagal melakukan soft delet user: {}", e.getMessage());
             return 0L;
         }
     }
 
     public boolean updateUser(final User user) {
-        final String sql = "UPDATE " + User.TABLE_NAME + " SET name = ?, updated_at = ? WHERE id = ?";
+        final String sql = "UPDATE " + User.TABLE_NAME + " SET name = ?, updated_at = ?, updated_by = ? WHERE id = ?";
         try {
             int rowsAffected = jdbcTemplate.update(con -> {
                 PreparedStatement ps = con.prepareStatement(sql);
                 ps.setString(1, user.name());
                 ps.setTimestamp(2, Timestamp.from(user.updatedAt().toInstant()));
-                ps.setLong(3, user.id());
+                ps.setLong(3, user.updatedBy());
+                ps.setLong(4, user.id());
                 return ps;
             });
             return rowsAffected > 0;

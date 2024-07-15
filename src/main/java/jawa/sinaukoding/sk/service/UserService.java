@@ -3,6 +3,7 @@ package jawa.sinaukoding.sk.service;
 import jawa.sinaukoding.sk.entity.User;
 import jawa.sinaukoding.sk.model.Authentication;
 import jawa.sinaukoding.sk.model.Page;
+import jawa.sinaukoding.sk.model.request.DeleteUserReq;
 import jawa.sinaukoding.sk.model.request.LoginReq;
 import jawa.sinaukoding.sk.model.request.RegisterBuyerReq;
 import jawa.sinaukoding.sk.model.request.RegisterSellerReq;
@@ -172,12 +173,11 @@ public final class UserService extends AbstractService {
         }
     }
 
-    public Response<Object> deletedUser(Authentication authentication, Long userId) {
+    public Response<Object> deletedUser(Authentication authentication, DeleteUserReq req) {
         return precondition(authentication, User.Role.ADMIN).orElseGet(() -> {
-            Optional<User> userOpt = userRepository.findById(userId);
-
-            if (!userOpt.isPresent()) {
-                return Response.create("10", "02", "ID tidak ditemukan", null);
+            Optional<User> userOpt = userRepository.findById(authentication.id());
+            if (userOpt.isEmpty()) {
+                return Response.create("07", "01", "ID tidak ditemukan", null);
             }
 
             User dataUser = userOpt.get();

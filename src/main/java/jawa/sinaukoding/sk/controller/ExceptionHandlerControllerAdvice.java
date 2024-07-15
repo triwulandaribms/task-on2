@@ -1,6 +1,6 @@
 package jawa.sinaukoding.sk.controller;
 
-import jawa.sinaukoding.sk.exception.ListRequestException;
+import jawa.sinaukoding.sk.exception.CustomeException;
 import jawa.sinaukoding.sk.model.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,8 +12,8 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 @ControllerAdvice
 public class ExceptionHandlerControllerAdvice extends ResponseEntityExceptionHandler {
 
-    @ExceptionHandler(ListRequestException.class)
-    public ResponseEntity<Response<Object>> handleListRequestException(ListRequestException e, WebRequest request) {
+    @ExceptionHandler(CustomeException.class)
+    public ResponseEntity<Response<Object>> handleListRequestException(CustomeException e, WebRequest request) {
         Response<Object> errorResponse = new Response<>("0401", e.getMessage(), null);
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }

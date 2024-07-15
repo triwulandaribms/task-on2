@@ -1,5 +1,6 @@
 package jawa.sinaukoding.sk.controller;
 
+import jawa.sinaukoding.sk.exception.CustomeException;
 import jawa.sinaukoding.sk.model.Authentication;
 import jawa.sinaukoding.sk.model.Response;
 import jawa.sinaukoding.sk.model.request.AuctionBidReq;
@@ -14,8 +15,18 @@ public class AuctionController {
 
     private final AuctionService auctionService;
 
-    public AuctionController(AuctionService auctionService){
+    public AuctionController(AuctionService auctionService) {
         this.auctionService = auctionService;
+    }
+
+    // list auction
+    @GetMapping("/list-auction")
+    public Response<Object> listAuctions(@RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size,
+            @RequestParam(value = "status", required = false) String status) {
+
+        Authentication authentication = SecurityContextHolder.getAuthentication();
+        return auctionService.listAuctions(authentication, page, size, status);
     }
 
     // seller bisa createAuction
@@ -36,15 +47,14 @@ public class AuctionController {
     @PostMapping("/reject/{id}")
     public Response<Object> rejectAuction(@PathVariable Long id) {
         Authentication auth = SecurityContextHolder.getAuthentication();
-        return auctionService.auctionRejected(auth,id);
+        return auctionService.auctionRejected(auth, id);
     }
 
-    //buyer, create AuctionBid
+    // buyer, create AuctionBid
     @PostMapping("/create-bid")
-    public Response<Object> createAuctionBid(@RequestBody AuctionBidReq req){
+    public Response<Object> createAuctionBid(@RequestBody AuctionBidReq req) {
         Authentication authentication = SecurityContextHolder.getAuthentication();
-        return auctionService.createAuctionBid(authentication,req);
+        return auctionService.createAuctionBid(authentication, req);
     }
-
 
 }

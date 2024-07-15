@@ -1,8 +1,9 @@
 package jawa.sinaukoding.sk.controller;
 
-import jawa.sinaukoding.sk.exception.ListRequestException;
+import jawa.sinaukoding.sk.exception.CustomeException;
 import jawa.sinaukoding.sk.model.Authentication;
 import jawa.sinaukoding.sk.model.Response;
+import jawa.sinaukoding.sk.model.request.DeleteUserReq;
 import jawa.sinaukoding.sk.model.request.RegisterBuyerReq;
 import jawa.sinaukoding.sk.model.request.RegisterSellerReq;
 import jawa.sinaukoding.sk.model.request.ResetPasswordReq;
@@ -26,14 +27,11 @@ public class UserController {
 
     @GetMapping("/list")
     public Response<Object> listUser(@RequestParam(value = "page", defaultValue = "1") int page,
-            @RequestParam(value = "size", defaultValue = "3") int size) {
-          try {
-                Authentication authentication = SecurityContextHolder.getAuthentication();
-                return userService.listUsers(authentication, page, size);
-        
-            } catch (Exception e) {
-                throw new  ListRequestException("gagal liat list user");
-            }
+            @RequestParam(value = "size", defaultValue = "10") int size) {
+
+        Authentication authentication = SecurityContextHolder.getAuthentication();
+        return userService.listUsers(authentication, page, size);
+
     }
 
     @PostMapping("/register-seller")
@@ -62,9 +60,8 @@ public class UserController {
     }
 
     @DeleteMapping("/delete-user")
-    public Response<Object> deleteUser(@RequestBody Map<String, Long> requestBody) {
-        Long userId = requestBody.get("id");
+    public Response<Object> deletedUser(@RequestBody DeleteUserReq req) {
         Authentication authentication = SecurityContextHolder.getAuthentication();
-        return userService.deletedUser(authentication, userId);
+        return userService.deletedUser(authentication, req);
     }
 }
