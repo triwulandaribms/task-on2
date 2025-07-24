@@ -1,6 +1,5 @@
 package jawa.sinaukoding.sk.controller;
 
-import jawa.sinaukoding.sk.exception.CustomeException;
 import jawa.sinaukoding.sk.model.Authentication;
 import jawa.sinaukoding.sk.model.Response;
 import jawa.sinaukoding.sk.model.request.AuctionBidReq;

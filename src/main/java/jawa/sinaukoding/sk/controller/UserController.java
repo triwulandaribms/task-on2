@@ -1,9 +1,7 @@
 package jawa.sinaukoding.sk.controller;
 
-import jawa.sinaukoding.sk.exception.CustomeException;
 import jawa.sinaukoding.sk.model.Authentication;
 import jawa.sinaukoding.sk.model.Response;
-import jawa.sinaukoding.sk.model.request.DeleteUserReq;
 import jawa.sinaukoding.sk.model.request.RegisterBuyerReq;
 import jawa.sinaukoding.sk.model.request.RegisterSellerReq;
 import jawa.sinaukoding.sk.model.request.ResetPasswordReq;

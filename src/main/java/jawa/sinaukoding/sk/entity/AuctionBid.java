@@ -1,30 +1,73 @@
 package jawa.sinaukoding.sk.entity;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.Statement;
-import java.sql.Timestamp;
+import jakarta.persistence.*;
+
 import java.time.OffsetDateTime;
 
-public record AuctionBid(Long id, //
-                         Long auctionId, //
-                         Long bid, //
-                         Long bidder, //
-                         OffsetDateTime createdAt //
-                          ) {
+@Entity
+@Table(name = "sk_auction_bidding")
+public class AuctionBid {
 
-    public static final String TABLE_NAME = "sk_auction_bit";
-    public PreparedStatement insert(final Connection connection) {
-        try {
-            String query = "INSERT INTO " + TABLE_NAME + " (auction_id, bid, bidder, created_at) " + "VALUES (?, ?, ?, CURRENT_TIMESTAMP)";
-            PreparedStatement ps = connection.prepareStatement(query, PreparedStatement.RETURN_GENERATED_KEYS);
-            ps.setLong(1, this.auctionId());
-            ps.setLong(2, this.bid());
-            ps.setLong(3, this.bidder());
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-            return ps;
-        } catch (Exception e) {
-            return null;
-        }
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "auction_id", nullable = false)
+    private Auction auction;
+
+    @Column(nullable = false)
+    private Long bid;
+
+    @Column(name = "buyer_id", nullable = false)
+    private Long buyerId;
+
+    @Column(name = "created_at", nullable = false)
+    private OffsetDateTime createdAt = OffsetDateTime.now();
+
+    public AuctionBid() {}
+
+    public AuctionBid(Auction auction, Long bid, Long buyerId) {
+        this.auction = auction;
+        this.bid = bid;
+        this.buyerId = buyerId;
+        this.createdAt = OffsetDateTime.now();
+    }
+
+
+    public Long getId() {
+        return id;
+    }
+
+    public Auction getAuction() {
+        return auction;
+    }
+
+    public void setAuction(Auction auction) {
+        this.auction = auction;
+    }
+
+    public Long getBid() {
+        return bid;
+    }
+
+    public void setBid(Long bid) {
+        this.bid = bid;
+    }
+
+    public Long getBuyerId() {
+        return buyerId;
+    }
+
+    public void setBuyerId(Long buyerId) {
+        this.buyerId = buyerId;
+    }
+
+    public OffsetDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(OffsetDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 }

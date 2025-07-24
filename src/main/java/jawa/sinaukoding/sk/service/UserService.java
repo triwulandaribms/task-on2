@@ -3,7 +3,6 @@ package jawa.sinaukoding.sk.service;
 import jawa.sinaukoding.sk.entity.User;
 import jawa.sinaukoding.sk.model.Authentication;
 import jawa.sinaukoding.sk.model.Page;
-import jawa.sinaukoding.sk.model.request.DeleteUserReq;
 import jawa.sinaukoding.sk.model.request.LoginReq;
 import jawa.sinaukoding.sk.model.request.RegisterBuyerReq;
 import jawa.sinaukoding.sk.model.request.RegisterSellerReq;
@@ -15,15 +14,15 @@ import jawa.sinaukoding.sk.repository.UserRepository;
 import jawa.sinaukoding.sk.util.HexUtils;
 import jawa.sinaukoding.sk.util.JwtUtils;
 import org.springframework.core.env.Environment;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public final class UserService extends AbstractService {
@@ -39,15 +38,21 @@ public final class UserService extends AbstractService {
         final String skJwtKey = env.getProperty("sk.jwt.key");
         this.jwtKey = HexUtils.hexToBytes(skJwtKey);
     }
-
+    
     public Response<Object> listUsers(final Authentication authentication, final int page, final int size) {
         return precondition(authentication, User.Role.ADMIN).orElseGet(() -> {
             if (page <= 0 || size <= 0) {
                 return Response.badRequest();
             }
-            Page<User> userPage = userRepository.listUsers(page, size);
-            List<UserDto> users = userPage.data().stream().map(user -> new UserDto(user.id(), user.name())).toList();
-            Page<UserDto> p = new Page<>(userPage.totalData(), userPage.totalPage(), userPage.page(), userPage.saze(), users);
+            Pageable pageable = PageRequest.of(page - 1, size);
+            org.springframework.data.domain.Page<User> userPage = userRepository.findAll(pageable);
+
+            List<UserDto> users = userPage.getContent()
+                    .stream()
+                    .map(user -> new UserDto(user.getId(), user.getName()))
+                    .collect(Collectors.toList());
+
+            Page<UserDto> p = new Page<>(userPage.getTotalElements(), userPage.getTotalPages(), page, size, users);
             return Response.create("09", "00", "Sukses", p);
         });
     }
@@ -58,24 +63,19 @@ public final class UserService extends AbstractService {
                 return Response.badRequest();
             }
             final String encoded = passwordEncoder.encode(req.password());
-            final User user = new User( //
-                    null, //
-                    req.name(), //
-                    req.email(), //
-                    encoded, //
-                    User.Role.SELLER, //
-                    authentication.id(), //
-                    null, //
-                    null, //
-                    OffsetDateTime.now(), //
-                    null, //
-                    null //
-            );
-            final Long saved = userRepository.saveSeller(user);
-            if (0L == saved) {
+            final User user = new User();
+            user.setName(req.name());
+            user.setEmail(req.email());
+            user.setPassword(encoded);
+            user.setRole(User.Role.SELLER);
+            user.setCreatedBy(authentication.id());
+            user.setCreatedAt(OffsetDateTime.now());
+
+            User saved = userRepository.save(user);
+            if (saved == null || saved.getId() == null) {
                 return Response.create("05", "01", "Gagal mendaftarkan seller", null);
             }
-            return Response.create("05", "00", "Sukses", saved);
+            return Response.create("05", "00", "Sukses", saved.getId());
         });
     }
 
@@ -85,24 +85,19 @@ public final class UserService extends AbstractService {
                 return Response.badRequest();
             }
             final String encoded = passwordEncoder.encode(req.password());
-            final User user = new User( //
-                    null, //
-                    req.name(), //
-                    req.email(), //
-                    encoded, //
-                    User.Role.BUYER, //
-                    authentication.id(), //
-                    null, //
-                    null, //
-                    OffsetDateTime.now(), //
-                    null, //
-                    null //
-            );
-            final Long saved = userRepository.saveBuyer(user);
-            if (0L == saved) {
+            final User user = new User();
+            user.setName(req.name());
+            user.setEmail(req.email());
+            user.setPassword(encoded);
+            user.setRole(User.Role.BUYER);
+            user.setCreatedBy(authentication.id());
+            user.setCreatedAt(OffsetDateTime.now());
+
+            User saved = userRepository.save(user);
+            if (saved == null || saved.getId() == null) {
                 return Response.create("06", "01", "Gagal mendaftarkan buyer", null);
             }
-            return Response.create("06", "00", "Sukses", saved);
+            return Response.create("06", "00", "Sukses", saved.getId());
         });
     }
 
@@ -112,24 +107,23 @@ public final class UserService extends AbstractService {
         }
         final Optional<User> userOpt = userRepository.findByEmail(req.email());
         if (userOpt.isEmpty()) {
-            return Response.create("08", "01", "Email  salah", null);
+            return Response.create("08", "01", "Email salah", null);
         }
         final User user = userOpt.get();
-        if (!passwordEncoder.matches(req.password(), user.password())) {
-            return Response.create("08", "02", "password salah", null);
+        if (!passwordEncoder.matches(req.password(), user.getPassword())) {
+            return Response.create("08", "02", "Password salah", null);
         }
-        final Authentication authentication = new Authentication(user.id(), user.role(), true);
-        System.out.println("auth : " + authentication);
+        final Authentication authentication = new Authentication(user.getId(), user.getRole(), true);
         final long iat = System.currentTimeMillis();
         final long exp = 1000 * 60 * 60 * 24; // 24 hour
-        final JwtUtils.Header header = new JwtUtils.Header() //
-                .add("typ", "JWT") //
-                .add("alg", "HS256"); //
-        final JwtUtils.Payload payload = new JwtUtils.Payload() //
-                .add("sub", authentication.id()) //
-                .add("role", user.role().name()) //
-                .add("iat", iat) //
-                .add("exp", exp); //
+        final JwtUtils.Header header = new JwtUtils.Header()
+                .add("typ", "JWT")
+                .add("alg", "HS256");
+        final JwtUtils.Payload payload = new JwtUtils.Payload()
+                .add("sub", authentication.id())
+                .add("role", user.getRole().name())
+                .add("iat", iat)
+                .add("exp", exp);
         final String token = JwtUtils.hs256Tokenize(header, payload, jwtKey);
         return Response.create("08", "00", "Sukses", token);
     }
@@ -149,22 +143,19 @@ public final class UserService extends AbstractService {
             }
 
             User user = userOpt.get();
-            if (passwordEncoder.matches(req.newPassword(), user.password())) {
+            if (passwordEncoder.matches(req.newPassword(), user.getPassword())) {
                 return Response.create("07", "04", "Password lama dan password baru sama. Silakan gunakan password yang berbeda",
                         null);
             }
 
-            if ((user.deletedBy() != null && user.deletedBy() != 0) || user.deletedAt() != null) {
+            if ((user.getDeletedBy() != null && user.getDeletedBy() != 0) || user.getDeletedAt() != null) {
                 return Response.create("07", "05", "Akun pengguna telah dihapus", null);
             }
 
-            String newEncodedPassword = passwordEncoder.encode(req.newPassword());
-            long updatedUserId = userRepository.resetPassword(user.id(), newEncodedPassword);
-            if (updatedUserId == 0L) {
-                return Response.create("07", "06", "Gagal memperbarui password", null);
-            }
+            user.setPassword(passwordEncoder.encode(req.newPassword()));
+            userRepository.save(user);
 
-            UserDto userDto = new UserDto(user.id(), user.name());
+            UserDto userDto = new UserDto(user.getId(), user.getName());
             return Response.create("07", "00", "Password berhasil diperbarui", userDto);
         } catch (Exception e) {
             return Response.create("07", "07", "Token tidak valid", null);
@@ -175,38 +166,27 @@ public final class UserService extends AbstractService {
         return precondition(authentication, User.Role.ADMIN).orElseGet(() -> {
             Optional<User> userOpt = userRepository.findById(userId);
 
-            if (!userOpt.isPresent()) {
+            if (userOpt.isEmpty()) {
                 return Response.create("10", "02", "ID tidak ditemukan", null);
             }
 
             User dataUser = userOpt.get();
 
-            if (dataUser.deletedAt() != null) {
+            if (dataUser.getDeletedAt() != null) {
                 return Response.create("10", "03", "Data sudah dihapus", null);
             }
 
-            User updatedUser = new User(
-                    dataUser.id(),
-                    dataUser.name(),
-                    dataUser.email(),
-                    dataUser.password(),
-                    dataUser.role(),
-                    dataUser.createdBy(),
-                    dataUser.updatedBy(),
-                    authentication.id(),
-                    dataUser.createdAt(),
-                    dataUser.updatedAt(),
-                    OffsetDateTime.now());
+            dataUser.setDeletedBy(authentication.id());
+            dataUser.setDeletedAt(OffsetDateTime.now());
 
-            Long updatedRows = userRepository.deletedUser(updatedUser);
-            if (updatedRows > 0) {
+            User saved = userRepository.save(dataUser);
+            if (saved != null && saved.getDeletedAt() != null) {
                 return Response.create("10", "00", "Berhasil hapus data", null);
             } else {
                 return Response.create("10", "01", "Gagal hapus data", null);
             }
         });
     }
-
 
     public Response<Object> updateProfile(final Authentication authentication, final UpdateProfileReq req) {
         return precondition(authentication, User.Role.ADMIN, User.Role.BUYER, User.Role.SELLER).orElseGet(() -> {
@@ -215,25 +195,18 @@ public final class UserService extends AbstractService {
                 return Response.create("07", "01", "User tidak ditemukan", null);
             }
             User user = userOpt.get();
-            User updatedUser = new User(
-                    user.id(),
-                    req.name(),
-                    user.email(),
-                    user.password(),
-                    user.role(),
-                    user.createdBy(),
-                    user.updatedBy(),
-                    user.deletedBy(),
-                    user.createdAt(),
-                    OffsetDateTime.now(),
-                    user.deletedAt());
 
-            if (userRepository.updateUser(updatedUser)) {
+            user.setName(req.name());
+            user.setUpdatedAt(OffsetDateTime.now());
+
+            User saved = userRepository.save(user);
+            if (saved != null) {
                 return Response.create("07", "00", "Profil berhasil diupdate", null);
             } else {
                 return Response.create("07", "02", "Gagal mengupdate profil", null);
             }
         });
     }
+
 
 }

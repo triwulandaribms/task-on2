@@ -2,12 +2,16 @@ spring:
   application:
     name: sk
   datasource:
-    url: jdbc:sqlite:./tools/db/data/sk.db
-    username: admin
-    password: admin
-    driverClassName: org.sqlite.JDBC
+    url: jdbc:postgresql://localhost:5432/skdb
+    username: postgres
+    password: triwulandari3456
+    driver-class-name: org.postgresql.Driver
   jpa:
-    database-platform: org.hibernate.dialect.SQLiteDialect
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
 sk:
   jwt:
     key: 46dcf409d6aafd07cda7a224c1bfba8aa85b66dae9d037984881beef6516118d
